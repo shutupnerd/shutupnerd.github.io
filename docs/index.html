@@ -1,10 +1,1372 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello, World!</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-      <h1 class="title">Hello World!</h1>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pixel Nook — a cozy little blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0d0813;
+      --bg: #241a30;
+      --bg2: #2e2240;
+      --bg3: #3a2b4f;
+      --cream: #ffe8d3;
+      --dim: #c9b6cf;
+      --mute: #8f7fa5;
+      --peach: #ffb385;
+      --pink: #ff9dc4;
+      --mint: #9be3c4;
+      --gold: #ffd479;
+      --lav: #b9a7ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'VT323', ui-monospace, monospace;
+      font-size: 21px;
+      line-height: 1.4;
+      overflow-x: hidden;
+      image-rendering: pixelated;
+    }
+
+    /* soft pixel grid + glow */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(ellipse at 50% -10%, rgba(185, 167, 255, .14), transparent 62%),
+        radial-gradient(ellipse at 90% 110%, rgba(255, 157, 196, .10), transparent 55%),
+        linear-gradient(rgba(255, 255, 255, .020) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .020) 1px, transparent 1px);
+      background-size: auto, auto, 6px 6px, 6px 6px;
+    }
+
+    main,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* ============ NAV ============ */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px clamp(14px, 4vw, 44px);
+      background: #1a1224;
+      border-bottom: 3px solid var(--ink);
+      box-shadow: 0 4px 0 rgba(255, 255, 255, .05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--cream);
+      text-decoration: none;
+      text-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .brand canvas {
+      width: 22px;
+      height: 22px;
+    }
+
+    .caret {
+      color: var(--peach);
+      animation: blink 1.05s steps(1) infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: var(--dim);
+      text-decoration: none;
+      padding: 10px 11px;
+      border: 2px solid transparent;
+      transition: background .1s steps(2), color .1s steps(2);
+    }
+
+    .nav-links a:hover {
+      color: var(--cream);
+      background: var(--bg2);
+      border-color: var(--ink);
+    }
+
+    /* ============ HERO ============ */
+    .hero {
+      position: relative;
+      height: min(82vh, 640px);
+      min-height: 430px;
+      overflow: hidden;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    #scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 3;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 clamp(20px, 7vw, 90px);
+      max-width: 860px;
+      pointer-events: none;
+    }
+
+    .hero-inner>* {
+      pointer-events: auto;
+    }
+
+    h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(17px, 3.2vw, 38px);
+      line-height: 1.55;
+      margin: 0 0 22px;
+      color: #fff5e6;
+      text-shadow: 4px 4px 0 #1a1224, 9px 9px 0 rgba(0, 0, 0, .28);
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--peach);
+    }
+
+    .hero-sub {
+      font-size: clamp(18px, 2vw, 25px);
+      color: #ffdcc4;
+      max-width: 520px;
+      margin: 0 0 30px;
+      text-shadow: 2px 2px 0 #1a1224;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-decoration: none;
+      padding: 15px 20px;
+      color: #2a1620;
+      background: var(--peach);
+      border: 3px solid var(--ink);
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, .25),
+        inset 3px 3px 0 rgba(255, 255, 255, .4),
+        5px 5px 0 rgba(0, 0, 0, .5);
+      cursor: pointer;
+      transition: transform .08s steps(2), box-shadow .08s steps(2);
+    }
+
+    .btn:hover {
+      transform: translate(3px, 3px);
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, .25),
+        inset 3px 3px 0 rgba(255, 255, 255, .4),
+        2px 2px 0 rgba(0, 0, 0, .5);
+    }
+
+    .btn.ghost {
+      background: rgba(26, 18, 36, .7);
+      color: var(--cream);
+      border-color: var(--ink);
+    }
+
+    .btn.ghost:hover {
+      background: var(--bg3);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      z-index: 3;
+      transform: translateX(-50%);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: #ffe8d3;
+      text-shadow: 2px 2px 0 #1a1224;
+      animation: bob 1.7s steps(2, end) infinite;
+    }
+
+    @keyframes bob {
+
+      0%,
+      100% {
+        transform: translate(-50%, 0);
+      }
+
+      50% {
+        transform: translate(-50%, 9px);
+      }
+    }
+
+    /* ============ LAYOUT ============ */
+    .wrap {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: clamp(46px, 7vw, 86px) clamp(16px, 4vw, 40px);
+    }
+
+    section {
+      scroll-margin-top: 80px;
+    }
+
+    .section-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(12px, 1.7vw, 17px);
+      letter-spacing: 1px;
+      color: var(--cream);
+      margin: 0 0 34px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .section-title::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      flex: none;
+      background: var(--peach);
+      box-shadow: 0 0 0 3px var(--ink);
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 3px;
+      background: repeating-linear-gradient(90deg, var(--bg3) 0 6px, transparent 6px 13px);
+    }
+
+    /* ============ ABOUT ============ */
+    .about {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: clamp(24px, 4vw, 44px);
+      align-items: center;
+    }
+
+    .avatar-panel {
+      background: var(--bg2);
+      border: 3px solid var(--ink);
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, .32),
+        inset 3px 3px 0 rgba(255, 255, 255, .07),
+        7px 7px 0 rgba(0, 0, 0, .45);
+      padding: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    #avatar {
+      width: 132px;
+      height: 132px;
+      animation: bob2 3.2s ease-in-out infinite;
+    }
+
+    @keyframes bob2 {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-7px);
+      }
+    }
+
+    .about h2 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(12px, 1.8vw, 17px);
+      line-height: 1.9;
+      margin: 0 0 18px;
+      color: var(--cream);
+      text-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .hl {
+      color: var(--pink);
+    }
+
+    .about p {
+      margin: 0 0 14px;
+      color: var(--dim);
+      max-width: 58ch;
+    }
+
+    .now-playing {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: #1a1224;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, .45);
+      font-size: 18px;
+      color: var(--dim);
+    }
+
+    .eq {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 18px;
+    }
+
+    .eq span {
+      width: 4px;
+      height: 6px;
+      background: var(--mint);
+      animation: eq .75s steps(3, end) infinite;
+    }
+
+    .eq span:nth-child(2) {
+      background: var(--peach);
+      animation-delay: .18s;
+    }
+
+    .eq span:nth-child(3) {
+      background: var(--pink);
+      animation-delay: .36s;
+    }
+
+    .eq span:nth-child(4) {
+      background: var(--lav);
+      animation-delay: .12s;
+    }
+
+    @keyframes eq {
+
+      0%,
+      100% {
+        height: 5px;
+      }
+
+      50% {
+        height: 18px;
+      }
+    }
+
+    /* ============ POSTS ============ */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+      gap: 30px;
+    }
+
+    .post-card {
+      background: var(--bg2);
+      border: 3px solid var(--ink);
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, .3),
+        inset 3px 3px 0 rgba(255, 255, 255, .06),
+        6px 6px 0 rgba(0, 0, 0, .45);
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0;
+      translate: 0 18px;
+      transition: opacity .45s ease, translate .45s ease,
+        transform .1s steps(2), box-shadow .1s steps(2);
+    }
+
+    .post-card.in {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    .post-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, .3),
+        inset 3px 3px 0 rgba(255, 255, 255, .11),
+        11px 11px 0 rgba(0, 0, 0, .5);
+    }
+
+    .thumb {
+      width: 100%;
+      height: auto;
+      border-bottom: 3px solid var(--ink);
+      background: #1a1224;
+    }
+
+    .post-body {
+      padding: 18px 20px 22px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: 1px;
+      padding: 7px 8px;
+      margin-bottom: 14px;
+      color: #241a30;
+      background: var(--mint);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .tag.c2 {
+      background: var(--pink);
+    }
+
+    .tag.c3 {
+      background: var(--gold);
+    }
+
+    .tag.c4 {
+      background: var(--lav);
+    }
+
+    .tag.c5 {
+      background: var(--peach);
+    }
+
+    .post-body h3 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      line-height: 1.9;
+      margin: 0 0 14px;
+      color: var(--cream);
+    }
+
+    .post-body p {
+      margin: 0 0 16px;
+      font-size: 19px;
+      line-height: 1.32;
+      color: var(--dim);
+    }
+
+    .meta {
+      font-size: 17px;
+      color: var(--mute);
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      border-top: 2px dashed rgba(143, 127, 165, .3);
+      padding-top: 12px;
+    }
+
+    .meta b {
+      color: var(--peach);
+      font-weight: normal;
+    }
+
+    /* ============ FOOTER ============ */
+    footer {
+      border-top: 3px solid var(--ink);
+      background: #1a1224;
+      padding: clamp(44px, 6vw, 72px) 0 34px;
+    }
+
+    .foot-grid {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 40px);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    footer h4 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      line-height: 1.9;
+      margin: 0 0 16px;
+      color: var(--cream);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    footer p {
+      color: var(--mute);
+      margin: 0 0 20px;
+      max-width: 44ch;
+    }
+
+    .field {
+      display: flex;
+      max-width: 420px;
+    }
+
+    .field input {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg2);
+      border: 3px solid var(--ink);
+      border-right: none;
+      color: var(--cream);
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .field input::placeholder {
+      color: #6f5f85;
+    }
+
+    .field input:focus {
+      background: var(--bg3);
+    }
+
+    .foot-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .foot-links a {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: var(--dim);
+      text-decoration: none;
+      padding: 8px 0;
+      transition: color .1s steps(2), padding-left .1s steps(2);
+    }
+
+    .foot-links a:hover {
+      color: var(--peach);
+      padding-left: 6px;
+    }
+
+    .foot-bottom {
+      max-width: 1140px;
+      margin: 46px auto 0;
+      padding: 20px clamp(16px, 4vw, 40px) 0;
+      border-top: 3px solid rgba(255, 255, 255, .06);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 17px;
+      color: var(--mute);
+    }
+
+    .foot-bottom span {
+      color: var(--pink);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 780px) {
+      body {
+        font-size: 20px;
+      }
+
+      .about {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .about p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .foot-grid {
+        grid-template-columns: 1fr;
+        gap: 34px;
+      }
+
+      .hero {
+        height: 72vh;
+        min-height: 400px;
+      }
+
+      .nav-links a {
+        font-size: 7px;
+        padding: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: .001ms !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= NAV ================= -->
+  <header class="nav">
+    <a class="brand" href="#top">
+      <canvas id="logoCat" width="16" height="16" aria-hidden="true"></canvas>
+      <span>PIXEL NOOK<span class="caret">_</span></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#about">ABOUT</a>
+      <a href="#posts">POSTS</a>
+      <a href="#notes">NOTES</a>
+      <a href="#subscribe">SUBSCRIBE</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <canvas id="scene" aria-label="Animated pixel art scene of a cozy house at dusk"></canvas>
+      <div class="hero-inner">
+        <h1>a cozy little<br><em>corner</em> of the<br>internet</h1>
+        <p class="hero-sub">Slow thoughts, soft pixels, warm tea, and a cat asleep on the keyboard.</p>
+        <div class="hero-btns">
+          <a class="btn" href="#posts">READ THE BLOG</a>
+          <a class="btn ghost" href="#about">WHO'S THIS?</a>
+        </div>
+      </div>
+      <div class="scroll-hint">▼ SCROLL ▼</div>
+    </section>
+
+    <!-- ================= ABOUT ================= -->
+    <section class="wrap" id="about">
+      <div class="about">
+        <div class="avatar-panel">
+          <canvas id="avatar" width="32" height="32" aria-hidden="true"></canvas>
+        </div>
+        <div>
+          <h2>hi, i'm <span class="hl">mochi</span> ✿</h2>
+          <p>
+            I write about small things — slow mornings, half-finished projects, the exact
+            right amount of sugar in tea. I make pixel art when my brain is too loud,
+            and I keep this little nook so the quiet thoughts have somewhere to live.
+          </p>
+          <p>
+            Everything here is hand-drawn at a very small resolution. Please wipe your feet
+            and make yourself comfortable.
+          </p>
+          <div class="now-playing">
+            <div class="eq"><span></span><span></span><span></span><span></span></div>
+            now playing: rain on a tin roof (10 hours)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= POSTS ================= -->
+    <section class="wrap" id="posts">
+      <h2 class="section-title">LATEST POSTS</h2>
+      <div class="post-grid">
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="dawn" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag">COZY</span>
+            <h3>Slow Mornings &amp; Warm Mugs</h3>
+            <p>In defense of doing absolutely nothing before 10am. A small manifesto.</p>
+            <div class="meta">03.14.25 <b>·</b> 4 min read</div>
+          </div>
+        </article>
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="night" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag c4">MAKING</span>
+            <h3>Notes on Making Things Badly</h3>
+            <p>The first draft is supposed to be ugly. That's literally its job.</p>
+            <div class="meta">03.09.25 <b>·</b> 6 min read</div>
+          </div>
+        </article>
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="rain" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag c2">LIFE</span>
+            <h3>A Walk Through the Rain</h3>
+            <p>I forgot my umbrella on purpose. Here is what I noticed.</p>
+            <div class="meta">02.28.25 <b>·</b> 3 min read</div>
+          </div>
+        </article>
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="forest" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag c3">ART</span>
+            <h3>Pixel Art Is Just Tiny Honesty</h3>
+            <p>Thirty-two pixels is not enough room to lie. That's the whole appeal.</p>
+            <div class="meta">02.19.25 <b>·</b> 7 min read</div>
+          </div>
+        </article>
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="sunset" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag c5">MUSIC</span>
+            <h3>Midnight Playlist for Soft Brains</h3>
+            <p>Eleven songs with no sudden loud parts. You're welcome, nervous system.</p>
+            <div class="meta">02.07.25 <b>·</b> 5 min read</div>
+          </div>
+        </article>
+
+        <article class="post-card">
+          <canvas class="thumb" data-thumb="ember" aria-hidden="true"></canvas>
+          <div class="post-body">
+            <span class="tag">MIND</span>
+            <h3>How to Be Bored (On Purpose)</h3>
+            <p>Your brain is a garden. Boredom is the watering can nobody wants to use.</p>
+            <div class="meta">01.30.25 <b>·</b> 5 min read</div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= NOTES ================= -->
+    <section class="wrap" id="notes">
+      <h2 class="section-title">TINY NOTES</h2>
+      <div class="about" style="align-items:start">
+        <div class="avatar-panel" style="padding:18px">
+          <canvas class="thumb" data-thumb="forest" style="width:190px;border:none" aria-hidden="true"></canvas>
+        </div>
+        <div>
+          <p style="color:var(--dim);margin:0 0 14px">
+            <b style="color:var(--gold);font-weight:normal">✦ 04.02.25</b> — repotted the monstera.
+            She is thriving and honestly doing better than me.
+          </p>
+          <p style="color:var(--dim);margin:0 0 14px">
+            <b style="color:var(--mint);font-weight:normal">✦ 03.27.25</b> — drew 46 tiny trees today.
+            None of them are the same tree. This is the whole point.
+          </p>
+          <p style="color:var(--dim);margin:0">
+            <b style="color:var(--pink);font-weight:normal">✦ 03.21.25</b> — the cat has learned
+            that the keyboard is warm. Productivity: 0. Happiness: immeasurable.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer id="subscribe">
+    <div class="foot-grid">
+      <div>
+        <h4>GET LETTERS IN<br>YOUR INBOX ✉</h4>
+        <p>One soft email a month. No tracking pixels, no urgency, no "hey quick question".</p>
+        <form class="field"
+          onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('.btn').textContent='SENT ✓';">
+          <input type="email" placeholder="you@somewhere.cozy" required />
+          <button class="btn" type="submit">JOIN</button>
+        </form>
+      </div>
+      <div>
+        <h4>ELSEWHERE</h4>
+        <div class="foot-links">
+          <a href="#">→ RSS FEED</a>
+          <a href="#">→ PIXEL GALLERY</a>
+          <a href="#">→ TINY GUESTBOOK</a>
+          <a href="#">→ SAY HELLO</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© 2025 pixel nook · made with <span>♥</span> and 16 colours</div>
+      <div>best viewed at 800×600, ideally with tea</div>
+    </div>
+  </footer>
+
+  <script>
+    /* ==========================================================
+       1. MAIN HERO SCENE — animated pixel art canvas
+       ========================================================== */
+    (function () {
+      const cv = document.getElementById('scene');
+      const ctx = cv.getContext('2d');
+
+      let W = 240, H = 120, u = 1, T = 0;
+
+      /* --- normalised particle data (survives resize) --- */
+      const clouds = [
+        { x: 0.05, y: 0.16, s: 1.00, v: 0.0100 },
+        { x: 0.42, y: 0.09, s: 0.70, v: 0.0140 },
+        { x: 0.72, y: 0.22, s: 1.25, v: 0.0070 },
+        { x: 0.28, y: 0.31, s: 0.55, v: 0.0180 },
+        { x: 0.90, y: 0.12, s: 0.85, v: 0.0110 }
+      ];
+
+      const stars = [];
+      for (let i = 0; i < 48; i++) {
+        stars.push({
+          x: Math.random(),
+          y: Math.random() * 0.46,
+          p: Math.random() * Math.PI * 2,
+          big: Math.random() > 0.86
+        });
+      }
+
+      const flies = [];
+      for (let i = 0; i < 16; i++) {
+        flies.push({
+          x: Math.random(),
+          y: 0.72 + Math.random() * 0.22,
+          p: Math.random() * Math.PI * 2,
+          v: 0.4 + Math.random() * 0.8
+        });
+      }
+
+      /* --- helpers --- */
+      const SKY = [
+        [0.00, [34, 23, 52]],
+        [0.28, [66, 40, 84]],
+        [0.48, [118, 58, 102]],
+        [0.66, [190, 88, 106]],
+        [0.82, [246, 142, 104]],
+        [1.00, [255, 205, 150]]
+      ];
+
+      function drawSky() {
+        for (let y = 0; y < H; y++) {
+          const t = y / (H - 1);
+          let i = 0;
+          while (i < SKY.length - 2 && t > SKY[i + 1][0]) i++;
+          const t0 = SKY[i][0], c0 = SKY[i][1];
+          const t1 = SKY[i + 1][0], c1 = SKY[i + 1][1];
+          const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+          ctx.fillStyle = 'rgb(' +
+            Math.round(c0[0] + (c1[0] - c0[0]) * k) + ',' +
+            Math.round(c0[1] + (c1[1] - c0[1]) * k) + ',' +
+            Math.round(c0[2] + (c1[2] - c0[2]) * k) + ')';
+          ctx.fillRect(0, y, W, 1);
+        }
+      }
+
+      function circle(cx, cy, r) {
+        const R = Math.round(r);
+        for (let y = -R; y <= R; y++) {
+          const w = Math.floor(Math.sqrt(Math.max(0, r * r - y * y)));
+          ctx.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1);
+        }
+      }
+
+      function hill(yBase, amp, waves, phase, color) {
+        const f = (Math.PI * 2 * waves) / W;
+        ctx.fillStyle = color;
+        for (let x = 0; x < W; x++) {
+          const y = Math.round(
+            yBase +
+            Math.sin(x * f + phase) * amp +
+            Math.sin(x * f * 2.3 + phase * 1.7) * amp * 0.38
+          );
+          ctx.fillRect(x, y, 1, H - y);
+        }
+      }
+
+      function drawCloud(px, py, s) {
+        const bx = Math.round(px), by = Math.round(py);
+        const k = s * u * 0.9;
+        ctx.fillStyle = 'rgba(255,222,204,0.42)';
+        ctx.fillRect(bx, by, Math.round(22 * k), Math.round(4 * k));
+        ctx.fillRect(bx + 3 * k, by - 3 * k, Math.round(9 * k), Math.round(5 * k));
+        ctx.fillRect(bx + 12 * k, by - 2 * k, Math.round(7 * k), Math.round(4 * k));
+        ctx.fillRect(bx + 5 * k, by - 5 * k, Math.round(5 * k), Math.round(3 * k));
+        ctx.fillStyle = 'rgba(255,245,235,0.16)';
+        ctx.fillRect(bx + 5 * k, by - 5 * k, Math.round(5 * k), 1);
+      }
+
+      function drawHouse(hx, hy, k) {
+        const w = Math.round(17 * k);
+        const h = Math.round(11 * k);
+        const rh = Math.round(7 * k);
+
+        /* chimney */
+        ctx.fillStyle = '#4a3358';
+        ctx.fillRect(Math.round(hx + w * 0.72), Math.round(hy - h - rh - 1 * k),
+          Math.round(3 * k), Math.round(6 * k));
+
+        /* smoke */
+        for (let i = 0; i < 4; i++) {
+          const p = ((T * 0.28 + i * 0.25) % 1);
+          const sy = hy - h - rh - 1 * k - p * 13 * k;
+          const sx = hx + w * 0.72 + Math.sin(p * 6 + T) * 2.2 * k;
+          const sz = Math.max(1, Math.round((2.4 - p * 1.6) * k));
+          ctx.globalAlpha = (1 - p) * 0.45;
+          ctx.fillStyle = '#d9c6e0';
+          ctx.fillRect(Math.round(sx), Math.round(sy), sz, sz);
+        }
+        ctx.globalAlpha = 1;
+
+        /* body */
+        ctx.fillStyle = '#3b2a4d';
+        ctx.fillRect(Math.round(hx), Math.round(hy - h), w, h);
+
+        /* roof */
+        const centerX = hx + w / 2;
+        for (let i = 0; i < rh; i++) {
+          const t = i / (rh - 1);
+          const halfW = 1 + (w / 2 + 1.5 * k - 1) * t;
+          ctx.fillStyle = i < 2 ? '#8f4f68' : '#6e3a52';
+          ctx.fillRect(Math.round(centerX - halfW), Math.round(hy - h - rh + i),
+            Math.max(1, Math.round(halfW * 2)), 1);
+        }
+
+        /* warm glowing window */
+        const flick = 0.82 + Math.sin(T * 3.1) * 0.1 + Math.sin(T * 7.7) * 0.06;
+        ctx.globalAlpha = 0.20 * flick;
+        ctx.fillStyle = '#ffd479';
+        ctx.fillRect(Math.round(hx + 1.5 * k), Math.round(hy - h + 2 * k),
+          Math.round(7 * k), Math.round(7 * k));
+        ctx.globalAlpha = flick;
+        ctx.fillStyle = '#ffd479';
+        ctx.fillRect(Math.round(hx + 3.5 * k), Math.round(hy - h + 3.5 * k),
+          Math.round(4 * k), Math.round(4 * k));
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#3b2a4d';
+        ctx.fillRect(Math.round(hx + 5.5 * k), Math.round(hy - h + 3.5 * k),
+          1, Math.round(4 * k));
+
+        /* door */
+        ctx.fillStyle = '#241a30';
+        ctx.fillRect(Math.round(hx + w - 6.5 * k), Math.round(hy - 5 * k),
+          Math.round(4 * k), Math.round(5 * k));
+        ctx.fillStyle = '#ffd479';
+        ctx.fillRect(Math.round(hx + w - 3.6 * k), Math.round(hy - 2.8 * k), 1, 1);
+      }
+
+      function drawTree(x, y, k, col, col2) {
+        ctx.fillStyle = '#2a1c33';
+        ctx.fillRect(Math.round(x - 1 * k), Math.round(y - 3 * k),
+          Math.round(2 * k), Math.round(3 * k));
+        ctx.fillStyle = col;
+        ctx.fillRect(Math.round(x - 4.5 * k), Math.round(y - 6 * k), Math.round(9 * k), Math.round(3 * k));
+        ctx.fillStyle = col2 || col;
+        ctx.fillRect(Math.round(x - 3.5 * k), Math.round(y - 9 * k), Math.round(7 * k), Math.round(3 * k));
+        ctx.fillStyle = col;
+        ctx.fillRect(Math.round(x - 2.5 * k), Math.round(y - 12 * k), Math.round(5 * k), Math.round(3 * k));
+        ctx.fillRect(Math.round(x - 1.5 * k), Math.round(y - 15 * k), Math.round(3 * k), Math.round(3 * k));
+      }
+
+      /* --- main draw --- */
+      function draw() {
+        drawSky();
+
+        /* stars */
+        for (const s of stars) {
+          const a = 0.30 + 0.70 * (0.5 + 0.5 * Math.sin(T * 1.6 + s.p));
+          ctx.globalAlpha = a * (1 - s.y * 0.7);
+          ctx.fillStyle = s.big ? '#fff8dd' : '#ffe9d6';
+          const sx = Math.round(s.x * W), sy = Math.round(s.y * H);
+          ctx.fillRect(sx, sy, 1, 1);
+          if (s.big) {
+            ctx.globalAlpha = a * 0.35;
+            ctx.fillRect(sx - 1, sy, 3, 1);
+            ctx.fillRect(sx, sy - 1, 1, 3);
+          }
+        }
+        ctx.globalAlpha = 1;
+
+        /* sun */
+        const sunX = W * 0.76, sunY = H * 0.44, sunR = 9 * u;
+        ctx.fillStyle = '#ffc98a';
+        ctx.globalAlpha = 0.10; circle(sunX, sunY, sunR * 2.6);
+        ctx.globalAlpha = 0.18; circle(sunX, sunY, sunR * 1.7);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#ffe9b8'; circle(sunX, sunY, sunR);
+
+        /* clouds */
+        for (const c of clouds) {
+          c.x += c.v * 0.016;
+          if (c.x > 1.25) c.x = -0.3;
+          drawCloud(c.x * W, c.y * H, c.s);
+        }
+
+        /* far hills */
+        hill(H * 0.605, H * 0.030, 1.2, 1.4, '#7a4f7e');
+        hill(H * 0.665, H * 0.026, 1.8, 3.1, '#5d3a68');
+
+        /* mid hill */
+        hill(H * 0.735, H * 0.032, 1.5, 0.6, '#4e3560');
+
+        /* house + trees (midground) */
+        drawHouse(W * 0.15, H * 0.815, u);
+        drawTree(W * 0.055, H * 0.845, u, '#3d2a52', '#4b3462');
+        drawTree(W * 0.29, H * 0.835, u * 0.85, '#3d2a52', '#4b3462');
+
+        /* near hill (foreground) */
+        hill(H * 0.875, H * 0.026, 2.1, 2.2, '#33223f');
+
+        /* foreground trees */
+        drawTree(W * 0.93, H * 0.965, u * 1.25, '#2a1a36', '#352246');
+        drawTree(W * 0.82, H * 0.955, u * 0.9, '#2a1a36', '#352246');
+
+        /* grass tufts */
+        ctx.fillStyle = '#241830';
+        for (let i = 0; i < 26; i++) {
+          const gx = Math.round(((i * 137.5) % 100) / 100 * W);
+          const gy = Math.round(H * 0.93 + Math.sin(i * 3.7) * H * 0.02);
+          ctx.fillRect(gx, gy, 1, 2);
+        }
+
+        /* fireflies */
+        for (const f of flies) {
+          const fx = f.x * W + Math.sin(T * f.v + f.p) * 7;
+          const fy = f.y * H + Math.cos(T * f.v * 0.7 + f.p) * 3.5;
+          const a = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(T * 2.2 + f.p));
+          ctx.globalAlpha = a * 0.25;
+          ctx.fillStyle = '#ffe9a3';
+          ctx.fillRect(Math.round(fx) - 1, Math.round(fy) - 1, 3, 3);
+          ctx.globalAlpha = a;
+          ctx.fillRect(Math.round(fx), Math.round(fy), 1, 1);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      /* --- resize --- */
+      function resize() {
+        const r = cv.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        H = 120;
+        W = Math.max(110, Math.round(H * (r.width / r.height)));
+        cv.width = W;
+        cv.height = H;
+        ctx.imageSmoothingEnabled = false;
+        u = H / 120;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      /* --- loop (shared with avatar) --- */
+      let last = performance.now();
+      function loop(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        T += dt;
+        draw();
+        drawAvatar(dt);
+        requestAnimationFrame(loop);
+      }
+
+      /* ==========================================================
+         2. AVATAR CAT — blinks every few seconds
+         ========================================================== */
+      const acv = document.getElementById('avatar');
+      const actx = acv.getContext('2d');
+      const AS = 32;
+      acv.width = AS; acv.height = AS;
+
+      let blinkTimer = 2.2, blinkLeft = 0;
+
+      function drawAvatar(dt) {
+        blinkTimer -= dt;
+        if (blinkTimer <= 0) { blinkLeft = 0.14; blinkTimer = 2.4 + Math.random() * 3.2; }
+        if (blinkLeft > 0) blinkLeft -= dt;
+        const blinking = blinkLeft > 0;
+
+        const c = actx;
+        c.clearRect(0, 0, AS, AS);
+
+        const LINE = '#241a30', FUR = '#ffd9b0', FUR2 = '#f0b98a';
+        const PINK = '#ff9db8', EYE = '#241a30', WHT = '#fffaf0';
+
+        /* ears */
+        c.fillStyle = LINE;
+        c.fillRect(6, 3, 6, 6);
+        c.fillRect(20, 3, 6, 6);
+        c.fillStyle = PINK;
+        c.fillRect(8, 5, 3, 3);
+        c.fillRect(22, 5, 3, 3);
+
+        /* head outline + fill */
+        c.fillStyle = LINE;
+        c.fillRect(5, 8, 22, 17);
+        c.fillStyle = FUR;
+        c.fillRect(6, 9, 20, 15);
+
+        /* top shading */
+        c.fillStyle = FUR2;
+        c.fillRect(6, 9, 20, 2);
+
+        /* eyes */
+        if (blinking) {
+          c.fillStyle = EYE;
+          c.fillRect(10, 16, 3, 1);
+          c.fillRect(19, 16, 3, 1);
+        } else {
+          c.fillStyle = EYE;
+          c.fillRect(10, 14, 3, 4);
+          c.fillRect(19, 14, 3, 4);
+          c.fillStyle = WHT;
+          c.fillRect(10, 14, 1, 1);
+          c.fillRect(19, 14, 1, 1);
+        }
+
+        /* blush */
+        c.fillStyle = 'rgba(255,157,184,.75)';
+        c.fillRect(7, 18, 3, 2);
+        c.fillRect(22, 18, 3, 2);
+
+        /* nose + mouth */
+        c.fillStyle = PINK;
+        c.fillRect(15, 19, 2, 1);
+        c.fillStyle = LINE;
+        c.fillRect(15, 20, 2, 1);
+        c.fillRect(14, 21, 1, 1);
+        c.fillRect(17, 21, 1, 1);
+
+        /* whiskers */
+        c.fillStyle = LINE;
+        c.fillRect(1, 17, 4, 1);
+        c.fillRect(1, 20, 4, 1);
+        c.fillRect(27, 17, 4, 1);
+        c.fillRect(27, 20, 4, 1);
+      }
+
+      requestAnimationFrame(loop);
+    })();
+
+
+    /* ==========================================================
+       3. MINI SCENES for post thumbnails
+       ========================================================== */
+    (function () {
+      function hex2rgb(h) {
+        h = h.replace('#', '');
+        return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+      }
+      function mix(a, b, t) {
+        const A = hex2rgb(a), B = hex2rgb(b);
+        return 'rgb(' +
+          Math.round(A[0] + (B[0] - A[0]) * t) + ',' +
+          Math.round(A[1] + (B[1] - A[1]) * t) + ',' +
+          Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+      }
+
+      function circleAt(c, cx, cy, r, col) {
+        c.fillStyle = col;
+        for (let y = -r; y <= r; y++) {
+          const w = Math.floor(Math.sqrt(Math.max(0, r * r - y * y)));
+          c.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1);
+        }
+      }
+
+      function tree(c, x, y, col) {
+        c.fillStyle = col;
+        c.fillRect(x - 4, y - 6, 9, 3);
+        c.fillRect(x - 3, y - 9, 7, 3);
+        c.fillRect(x - 2, y - 12, 5, 3);
+        c.fillRect(x - 1, y - 15, 3, 3);
+        c.fillRect(x - 1, y - 3, 2, 4);
+      }
+
+      const PRESETS = {
+        dawn: {
+          sky: ['#4a2f6e', '#ffb385'],
+          orb: [[46, 24, 7], '#ffe9b8'],
+          hills: ['#6b4a7d', '#452f5c']
+        },
+        night: {
+          sky: ['#171029', '#3d2a5e'],
+          stars: true,
+          orb: [[48, 12, 5], '#f3e8ff'],
+          hills: ['#2b1e42', '#1a1229']
+        },
+        forest: {
+          sky: ['#7fd4b0', '#2e7d5b'],
+          hills: ['#2f6b4f', '#1c4433'],
+          trees: true
+        },
+        sunset: {
+          sky: ['#ff9d6e', '#ff5f8f'],
+          orb: [[32, 23, 8], '#ffd08a'],
+          hills: ['#b4446b', '#6d2a4e']
+        },
+        rain: {
+          sky: ['#5a7a9a', '#2b3f57'],
+          hills: ['#3a5470', '#22334a'],
+          rain: true
+        },
+        ember: {
+          sky: ['#2b1e42', '#8a4a4a'],
+          orb: [[16, 15, 4], '#ffcf8a'],
+          hills: ['#4a2f42', '#2a1a2a'],
+          flies: true
+        }
+      };
+
+      function render(cv, preset) {
+        const W = 64, H = 40;
+        cv.width = W; cv.height = H;
+        const c = cv.getContext('2d');
+        c.imageSmoothingEnabled = false;
+
+        /* sky */
+        for (let y = 0; y < H; y++) {
+          c.fillStyle = mix(preset.sky[0], preset.sky[1], y / (H - 1));
+          c.fillRect(0, y, W, 1);
+        }
+
+        /* stars */
+        if (preset.stars) {
+          c.fillStyle = 'rgba(255,240,220,.9)';
+          [[6, 5], [14, 3], [22, 8], [30, 4], [41, 6], [52, 3], [58, 9], [10, 12], [36, 11], [48, 13], [26, 2], [55, 15]]
+            .forEach(p => c.fillRect(p[0], p[1], 1, 1));
+        }
+
+        /* orb */
+        if (preset.orb) {
+          const o = preset.orb;
+          c.globalAlpha = 0.22;
+          circleAt(c, o[0][0], o[0][1], o[0][2] + 4, o[1]);
+          c.globalAlpha = 1;
+          circleAt(c, o[0][0], o[0][1], o[0][2], o[1]);
+        }
+
+        /* hills */
+        preset.hills.forEach((col, i) => {
+          const base = 24 + i * 8;
+          const amp = 4 - i * 1.2;
+          c.fillStyle = col;
+          for (let x = 0; x < W; x++) {
+            const y = Math.round(base + Math.sin(x * 0.085 + i * 2.1) * amp);
+            c.fillRect(x, y, 1, H - y);
+          }
+        });
+
+        /* trees */
+        if (preset.trees) {
+          tree(c, 14, 36, '#12362a');
+          tree(c, 30, 34, '#0f2c22');
+          tree(c, 47, 37, '#12362a');
+        }
+
+        /* rain */
+        if (preset.rain) {
+          c.fillStyle = 'rgba(200,225,245,.45)';
+          for (let i = 0; i < 34; i++) {
+            const x = (i * 17) % W;
+            const y = (i * 11) % H;
+            c.fillRect(x, y, 1, 3);
+          }
+        }
+
+        /* fireflies */
+        if (preset.flies) {
+          c.fillStyle = '#ffe9a3';
+          [[12, 30], [22, 33], [38, 31], [50, 34], [30, 28], [44, 36]].forEach(p => {
+            c.globalAlpha = 0.55;
+            c.fillRect(p[0] - 1, p[1], 3, 1);
+            c.globalAlpha = 1;
+            c.fillRect(p[0], p[1], 1, 1);
+          });
+        }
+      }
+
+      document.querySelectorAll('[data-thumb]').forEach(cv => {
+        const p = PRESETS[cv.dataset.thumb];
+        if (p) render(cv, p);
+      });
+    })();
+
+
+    /* ==========================================================
+       4. Logo cat
+       ========================================================== */
+    (function () {
+      const cv = document.getElementById('logoCat');
+      const c = cv.getContext('2d');
+      const P = { l: '#241a30', f: '#ffd9b0', p: '#ff9db8' };
+
+      c.fillStyle = P.l;
+      c.fillRect(2, 1, 3, 3); c.fillRect(11, 1, 3, 3);
+      c.fillStyle = P.p;
+      c.fillRect(3, 2, 1, 2); c.fillRect(12, 2, 1, 2);
+
+      c.fillStyle = P.l; c.fillRect(1, 4, 14, 10);
+      c.fillStyle = P.f; c.fillRect(2, 5, 12, 8);
+
+      c.fillStyle = P.l;
+      c.fillRect(4, 7, 2, 2);
+      c.fillRect(10, 7, 2, 2);
+      c.fillStyle = P.p;
+      c.fillRect(7, 10, 2, 1);
+    })();
+
+
+    /* ==========================================================
+       5. Scroll reveal
+       ========================================================== */
+    (function () {
+      const cards = document.querySelectorAll('.post-card');
+      if (!('IntersectionObserver' in window)) {
+        cards.forEach(c => c.classList.add('in'));
+        return;
+      }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('in'), i * 90);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      cards.forEach(c => io.observe(c));
+    })();
+  </script>
+</body>
+
 </html>
